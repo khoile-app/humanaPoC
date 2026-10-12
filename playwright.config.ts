@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { EyesFixture } from '@applitools/eyes-playwright/fixture';
 
 /**
  * Read environment variables from file.
@@ -11,7 +12,9 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-export default defineConfig({
+export default defineConfig<EyesFixture>({
+  /* Visual tests can queue on Eyes concurrency, so allow up to 5 minutes per test. */
+  timeout: 5 * 60_000,
   testDir: './tests',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -22,14 +25,23 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: [
+    ['html'],
+    ['@applitools/eyes-playwright/reporter'],
+  ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    headless: false, // Disables headless mode globally
     /* Base URL to use in actions like `await page.goto('')`. */
     // baseURL: 'http://localhost:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* Applitools Eyes. The API key is read from the APPLITOOLS_API_KEY env var. */
+    eyesConfig: {
+      apiKey: process.env.APPLITOOLS_API_KEY,
+    },
   },
 
   /* Configure projects for major browsers */
